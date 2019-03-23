@@ -1,0 +1,41 @@
+{
+    "name": "mitoop-dev/laravel-signature-guard",
+    "description": "laravel-signature-guard",
+    "type": "library",
+    "license": "mit",
+    "authors": [
+        {
+            "name": "徐夏冰",
+            "email": "037333@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.3",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^6.3",
+        "illuminate/support": "5.8.*",
+        "moontoast/math": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mitoop\\Signature\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mitoop\\Signature\\ServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
