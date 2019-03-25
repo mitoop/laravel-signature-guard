@@ -7,10 +7,10 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
- * @method  SignatureResponse  get($path, array $data = null, array $headers = null)
- * @method  SignatureResponse  post($path, array $data = null, array $headers = null)
- * @method  SignatureResponse  put($path, array $data = null, array $headers = null)
- * @method  SignatureResponse  delete($path, array $data = null, array $headers = null)
+ * @method  SignatureResponse  get($path, array $data)
+ * @method  SignatureResponse  post($path, array $data)
+ * @method  SignatureResponse  put($path, array $data)
+ * @method  SignatureResponse  delete($path, array $data)
  */
 final class Client
 {
@@ -139,15 +139,9 @@ final class Client
         return $this;
     }
 
-    protected function setDatas($key, $value = null)
+    protected function setDatas(array $data)
     {
-        if (is_array($key)) {
-            foreach ($key as $k => $v) {
-                $this->params[$k] = $v;
-            }
-        }else{
-            $this->params[$key] = $value;
-        }
+        $this->params = $data;
 
         return $this;
     }
@@ -197,26 +191,26 @@ final class Client
         self::$appInstance['events']->listen('mitoop.laravel-signature-guard.requested', $callback);
     }
 
-    protected function request(string $path, array $headers)
+    protected function request(string $path)
     {
         $requestStart = microtime(true);
 
         $this->fireEvent('requesting');
 
-        $response = $this->httpClient->request($this->method, $url = $this->buildUrl($path), $guzzleHttpData = $this->buildGuzzleHttpData($headers));
+        $response = $this->httpClient->request($this->method, $url = $this->buildUrl($path), $guzzleRequestOptions = $this->buildGuzzleRequestOptions());
 
         $this->fireEvent('requested');
         
         if($this->enableLog) {
-            $this->app['log']->debug('API Request Info', [
-                'url'           => $url,
-                'status'        => $response->getStatusCode(),
-                'request_start' => $requestStart,
-                'request_end'   => $requestEnd = microtime(true),
-                'time'          => ($requestEnd - $requestStart).'s',
-                'method'        => $this->method,
-                'data'          => $guzzleHttpData,
-                'result'        => $response->getBody()->getContents(),
+            $this->app['log']->debug('API Request Detail', [
+                'url'                    => $url,
+                'method'                 => $this->method,
+                'guzzle_request_options' => $guzzleRequestOptions,
+                'status'                 => $response->getStatusCode(),
+                'result'                 => $response->getBody()->getContents(),
+                'request_start'          => $requestStart,
+                'request_end'            => $requestEnd = microtime(true),
+                'time'                   => ($requestEnd - $requestStart).'s',
             ]);
         }
 
@@ -240,58 +234,49 @@ final class Client
             $url .= ':'.$this->port;
         }
 
-        return $url . $this->path . '?' . $this->buildSignData();
+        return $url . $this->path;
     }
 
-    protected function buildSignData()
+    protected function buildGuzzleRequestOptions()
     {
+        $guzzleRequestOptions = $this->params;
+        $guzzleRequestOptions['http_errors'] = false;
+
+        if ($this->ip) {
+            if(!isset($guzzleRequestOptions['headers'])) {
+                $guzzleRequestOptions['headers'] = [];
+            }
+            $guzzleRequestOptions['headers']['host'] = $this->host;
+        }
+
+        if ($this->scheme == self::SCHEME_HTTPS) {
+            if(!isset($guzzleRequestOptions['verify'])){
+                $guzzleRequestOptions['verify'] = $this->certPem;
+            }
+        }
+
         $signData = [];
         $signData['_app_id']    = $this->appId;
         $signData['_timestamp'] = time();
         $signData['_nonce']     = $this->identity . ':' . Str::orderedUuid()->toString();
+
         $data = array_merge($signData, [
             '_http_method' => $this->method,
             '_http_path'   => $this->path,
-        ], $this->params);
+        ]);
+        if(isset($guzzleRequestOptions['query'])) {
+            $data = array_merge($data, $guzzleRequestOptions['query']);
+        }
+
+        if(isset($guzzleRequestOptions['json'])){
+            $data = array_merge($data, $guzzleRequestOptions['json']);
+        }
 
         $signData['_sign'] = $this->app->make(Signature::class)->sign($data, $this->appSecret);
-        
-        if($this->method == 'GET') {
-            $signData = array_merge($signData, $this->params);
-        }
 
-        return http_build_query($signData, null, '&');
-    }
+        $guzzleRequestOptions['query'] = array_merge($signData, $guzzleRequestOptions['query'] ?? []);
 
-    protected function buildGuzzleHttpData(array $headers)
-    {
-        $guzzleHttpData = [];
-        $guzzleHttpData['http_errors'] = false;
-        $guzzleHttpData['headers'] = [];
-
-        if(in_array($this->method, ['POST', 'PUT', 'DELETE'])) {
-            $guzzleHttpData['form_params'] = $this->params;
-        }
-
-        foreach ($headers as $header => $value) {
-            $guzzleHttpData['headers'][$header] = $value;
-        }
-
-        if ($this->ip) {
-            $guzzleHttpData['headers'] = [
-                'Host' => $this->host,
-            ];
-        }
-
-        if ($this->scheme == self::SCHEME_HTTPS) {
-            $guzzleHttpData['verify'] = $this->certPem;
-        }
-
-        if(empty($guzzleHttpData['headers'])) {
-            unset($guzzleHttpData['headers']);
-        }
-
-        return $guzzleHttpData;
+        return $guzzleRequestOptions;
     }
 
     /**
@@ -309,7 +294,6 @@ final class Client
         $method  = strtoupper($method);
         $path    = $args[0];
         $datas   = $args[1] ?? [];
-        $headers = $args[2] ?? [];
 
         if ( ! in_array($method, self::SUPPORTED_HTTP_METHODS)) {
             throw new InvalidArgumentException('The magic method is not supported');
@@ -321,6 +305,6 @@ final class Client
 
         $this->setDatas($datas);
 
-        return $this->request($path, $headers);
+        return $this->request($path);
     }
 }

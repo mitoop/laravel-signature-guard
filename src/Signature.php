@@ -115,7 +115,7 @@ class Signature
      */
     private function validHmac()
     {
-        $params = $this->request->all();
+        $params = $this->request->input();
 
         $params = array_merge($params, [
             '_http_method' => $this->request->method(), // method() is always uppercase

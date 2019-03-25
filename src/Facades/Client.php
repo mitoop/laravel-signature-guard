@@ -7,10 +7,10 @@ use Mitoop\Signature\ClientManager;
 
 /**
  * @method static \Mitoop\Signature\Client  connect(string|null $client = null)
- * @method static \Mitoop\Signature\SignatureResponse  get($path, array $data = null, array $headers = null)
- * @method static \Mitoop\Signature\SignatureResponse  post($path, array $data = null, array $headers = null)
- * @method static \Mitoop\Signature\SignatureResponse  put($path, array $data = null, array $headers = null)
- * @method static \Mitoop\Signature\SignatureResponse  delete($path, array $data = null, array $headers = null)
+ * @method static \Mitoop\Signature\SignatureResponse  get($path, array $data)
+ * @method static \Mitoop\Signature\SignatureResponse  post($path, array $data)
+ * @method static \Mitoop\Signature\SignatureResponse  put($path, array $data)
+ * @method static \Mitoop\Signature\SignatureResponse  delete($path, array $data)
  */
 class Client extends Facade
 {
