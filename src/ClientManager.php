@@ -104,8 +104,8 @@ class ClientManager
                  'scheme'         => 'http',
                  'host'           => '',
                  'ip'             => '',
-                 'port'           => 80,
-                 'https_cert_pem' => '',
+                 'port'           => '',
+                 'https_cert_pem' => false,
                  'enable_log'     => true,
              ], $config);
 

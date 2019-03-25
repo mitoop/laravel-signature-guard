@@ -111,11 +111,6 @@ final class Client
 
     public function setScheme($scheme)
     {
-        if(!$scheme) {
-            // default http
-            $scheme = self::SCHEME_HTTP;
-        }
-
         $scheme = strtolower($scheme);
 
         if (! in_array($scheme, [self::SCHEME_HTTP, self::SCHEME_HTTPS])) {
@@ -129,12 +124,9 @@ final class Client
 
     public function setPort($port)
     {
-        if(!$port) {
-            // default 80
-            $port = self::HTTP_DEFAULT_PORT;
+        if($this->port) {
+            $this->port = intval($port);
         }
-
-        $this->port = intval($port);
 
         return $this;
     }
@@ -230,7 +222,7 @@ final class Client
             $url .= $this->host;
         }
 
-        if (($scheme == self::SCHEME_HTTP && $this->port != self::HTTP_DEFAULT_PORT) || ($scheme == self::SCHEME_HTTPS && $this->port != self::HTTPS_DEFAULT_PORT)) {
+        if($this->port) {
             $url .= ':'.$this->port;
         }
 
