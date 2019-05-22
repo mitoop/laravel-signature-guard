@@ -2,12 +2,11 @@
 namespace Mitoop\Signature;
 
 use Illuminate\Contracts\Auth\UserProvider;
-use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
 
-class ServiceProvider extends LaravelServiceProvider implements DeferrableProvider
+class ServiceProvider extends LaravelServiceProvider
 {
     /**
      * Register the service provider.
