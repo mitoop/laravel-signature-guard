@@ -256,9 +256,15 @@ final class Client
             '_http_method' => $this->method,
             '_http_path'   => $this->path,
         ]);
+
         if(isset($guzzleRequestOptions['query'])) {
             $data = array_merge($data, $guzzleRequestOptions['query']);
         }
+
+        if(isset($guzzleRequestOptions['form_params'])) {
+            $data = array_merge($data, $guzzleRequestOptions['form_params']);
+        }
+
 
         if(isset($guzzleRequestOptions['json'])){
             $data = array_merge($data, $guzzleRequestOptions['json']);
