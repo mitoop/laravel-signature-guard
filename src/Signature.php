@@ -7,7 +7,7 @@ use Mitoop\Signature\Exception\InvalidSignatureException;
 
 class Signature
 {
-    const REQUEST_EXPIRATION = 60;
+    const REQUEST_EXPIRATION = 10;
 
     /**
      * The application instance.
@@ -34,7 +34,7 @@ class Signature
     /**
      * Create a new Client manager instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application $app
+     * @param  \Illuminate\Contracts\Foundation\Application  $app
      *
      * @param $configName
      */
@@ -45,10 +45,10 @@ class Signature
     }
 
     /**
-     * Get sinature.
+     * Get signature.
      *
-     * @param array $params
-     * @param       $secret
+     * @param  array  $params
+     * @param  string  $secret
      *
      * @return string
      */
@@ -62,9 +62,9 @@ class Signature
     /**
      * Validate signature.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      *
-     * @return Object
+     * @return \Mitoop\Signature\ClientUser
      * @throws InvalidSignatureException
      */
     public function validSign(Request $request)
@@ -73,16 +73,21 @@ class Signature
 
         $client = $this->parseClient();
 
-        $this->validTimestamp()
-             ->validNonce($nonce = $this->request->query('_nonce'))
-             ->validHmac()
-             ->setNonceCache($nonce);
+        $nonce = $this->request->query('_nonce');
+
+        $this->validTimestamp()->validNonce($nonce)->validHmac()->setNonceCache($nonce);
 
         unset($client['app_secret']);
 
         return new ClientUser($client);
     }
 
+    /**
+     * Parse client on the basis of app id.
+     *
+     * @return array
+     * @throws \Mitoop\Signature\Exception\InvalidSignatureException
+     */
     protected function parseClient()
     {
         $appId = $this->request->query('_app_id');
@@ -97,14 +102,13 @@ class Signature
             return $client['app_id'] == $appId;
         }, ARRAY_FILTER_USE_BOTH));
 
-        if ($client === false || !isset($client['app_secret'])) {
+        if ($client === false || ! isset($client['app_secret'])) {
             throw new InvalidSignatureException('Invalid App id');
         }
 
         $this->client = $client;
 
         return $client;
-
     }
 
     /**
@@ -113,13 +117,13 @@ class Signature
      * @return $this
      * @throws \Mitoop\Signature\Exception\InvalidSignatureException
      */
-    private function validHmac()
+    protected function validHmac()
     {
         $params = $this->request->input();
 
         $params = array_merge($params, [
             '_http_method' => $this->request->method(), // method() is always uppercase
-            '_http_path'   => $this->request->getPathInfo(),
+            '_http_path' => $this->request->getPathInfo(),
         ]);
 
         $signature = $params['_sign'];
@@ -139,13 +143,17 @@ class Signature
      * @return $this
      * @throws \Mitoop\Signature\Exception\InvalidSignatureException
      */
-    private function validTimestamp()
+    protected function validTimestamp()
     {
         $timestamp = intval($this->request->query('_timestamp', 0));
 
         $now = time();
 
-        if ($timestamp <= 0 || $timestamp > $now || $now - $timestamp > self::REQUEST_EXPIRATION) {
+        if ($timestamp <= 0 || $timestamp > $now) {
+            throw new InvalidSignatureException('Request is invalid');
+        }
+
+        if ($now - $timestamp >= self::REQUEST_EXPIRATION) {
             throw new InvalidSignatureException('Request is expired');
         }
 
@@ -159,7 +167,7 @@ class Signature
      * @return $this
      * @throws \Mitoop\Signature\Exception\InvalidSignatureException
      */
-    private function validNonce($nonce)
+    protected function validNonce($nonce)
     {
         if (is_null($nonce) || $this->app['cache']->has('nonce:'.$nonce)) {
             throw new InvalidSignatureException('Nonce request');
@@ -173,7 +181,7 @@ class Signature
      *
      * @param $nonce
      */
-    private function setNonceCache($nonce)
+    protected function setNonceCache($nonce)
     {
         $this->app['cache']->add('nonce:'.$nonce, 1, self::REQUEST_EXPIRATION);
     }

@@ -7,26 +7,16 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
- * @method  SignatureResponse  get($path, array $data)
- * @method  SignatureResponse  post($path, array $data)
- * @method  SignatureResponse  put($path, array $data)
- * @method  SignatureResponse  delete($path, array $data)
+ * @method  SignatureResponse  get($path, array $params)
+ * @method  SignatureResponse  post($path, array $params)
+ * @method  SignatureResponse  put($path, array $params)
+ * @method  SignatureResponse  delete($path, array $params)
  */
-final class Client
+class Client
 {
-
     const SCHEME_HTTP = 'http';
+
     const SCHEME_HTTPS = 'https';
-
-    const HTTP_DEFAULT_PORT = 80;
-    const HTTPS_DEFAULT_PORT = 443;
-
-    const SUPPORTED_HTTP_METHODS = [
-        'GET',
-        'POST',
-        'PUT',
-        'DELETE'
-    ];
 
     protected static $appInstance;
 
@@ -51,6 +41,7 @@ final class Client
     protected $path;
 
     protected $enableLog;
+
     /**
      * @var \GuzzleHttp\Client
      */
@@ -124,14 +115,14 @@ final class Client
 
     public function setPort($port)
     {
-        if($this->port) {
+        if ($this->port) {
             $this->port = intval($port);
         }
 
         return $this;
     }
 
-    protected function setDatas(array $data)
+    protected function setParams(array $data)
     {
         $this->params = $data;
 
@@ -155,18 +146,18 @@ final class Client
     /**
      * Fires an event for the Client.
      *
-     * @param  string $name
+     * @param  string  $name
      * @return mixed
      */
     protected function fireEvent($name)
     {
-        return self::$appInstance['events']->dispatch('mitoop.laravel-api-signature.' . $name, [$this]);
+        return self::$appInstance['events']->dispatch('mitoop.laravel-signature-guard.'.$name, [$this]);
     }
 
     /**
-     * Fires the `mitoop.laravel-signature-guard.requesting` event.
+     * Listen the `mitoop.laravel-signature-guard.requesting` event.
      *
-     * @param Closure $callback
+     * @param  Closure  $callback
      */
     public static function requesting(Closure $callback)
     {
@@ -174,9 +165,9 @@ final class Client
     }
 
     /**
-     * Fires the `mitoop.laravel-signature-guard.requesting` event.
+     * Listen the `mitoop.laravel-signature-guard.requested` event.
      *
-     * @param Closure $callback
+     * @param  Closure  $callback
      */
     public static function requested(Closure $callback)
     {
@@ -189,20 +180,24 @@ final class Client
 
         $this->fireEvent('requesting');
 
-        $response = $this->httpClient->request($this->method, $url = $this->buildUrl($path), $guzzleRequestOptions = $this->buildGuzzleRequestOptions());
+        $response = $this->httpClient->request(
+            $this->method,
+            $url = $this->buildUrl($path),
+            $guzzleRequestOptions = $this->buildGuzzleRequestOptions()
+        );
 
         $this->fireEvent('requested');
-        
-        if($this->enableLog) {
+
+        if ($this->enableLog) {
             $this->app['log']->debug('API Request Detail', [
-                'url'                    => $url,
-                'method'                 => $this->method,
+                'url' => $url,
+                'method' => $this->method,
                 'guzzle_request_options' => $guzzleRequestOptions,
-                'status'                 => $response->getStatusCode(),
-                'result'                 => $response->getBody()->getContents(),
-                'request_start'          => $requestStart,
-                'request_end'            => $requestEnd = microtime(true),
-                'time'                   => ($requestEnd - $requestStart).'s',
+                'status' => $response->getStatusCode(),
+                'result' => $response->getBody()->getContents(),
+                'request_start' => $requestStart,
+                'request_end' => $requestEnd = microtime(true),
+                'time' => ($requestEnd - $requestStart).'s',
             ]);
         }
 
@@ -222,11 +217,11 @@ final class Client
             $url .= $this->host;
         }
 
-        if($this->port) {
+        if ($this->port) {
             $url .= ':'.$this->port;
         }
 
-        return $url . $this->path;
+        return $url.$this->path;
     }
 
     protected function buildGuzzleRequestOptions()
@@ -235,38 +230,37 @@ final class Client
         $guzzleRequestOptions['http_errors'] = false;
 
         if ($this->ip) {
-            if(!isset($guzzleRequestOptions['headers'])) {
+            if (! isset($guzzleRequestOptions['headers'])) {
                 $guzzleRequestOptions['headers'] = [];
             }
             $guzzleRequestOptions['headers']['host'] = $this->host;
         }
 
         if ($this->scheme == self::SCHEME_HTTPS) {
-            if(!isset($guzzleRequestOptions['verify'])){
+            if (! isset($guzzleRequestOptions['verify'])) {
                 $guzzleRequestOptions['verify'] = $this->certPem;
             }
         }
 
         $signData = [];
-        $signData['_app_id']    = $this->appId;
+        $signData['_app_id'] = $this->appId;
         $signData['_timestamp'] = time();
-        $signData['_nonce']     = $this->identity . ':' . Str::orderedUuid()->toString();
+        $signData['_nonce'] = $this->identity.':'.Str::orderedUuid()->toString();
 
         $data = array_merge($signData, [
             '_http_method' => $this->method,
-            '_http_path'   => $this->path,
+            '_http_path' => $this->path,
         ]);
 
-        if(isset($guzzleRequestOptions['query'])) {
+        if (isset($guzzleRequestOptions['query'])) {
             $data = array_merge($data, $guzzleRequestOptions['query']);
         }
 
-        if(isset($guzzleRequestOptions['form_params'])) {
+        if (isset($guzzleRequestOptions['form_params'])) {
             $data = array_merge($data, $guzzleRequestOptions['form_params']);
         }
 
-
-        if(isset($guzzleRequestOptions['json'])){
+        if (isset($guzzleRequestOptions['json'])) {
             $data = array_merge($data, $guzzleRequestOptions['json']);
         }
 
@@ -279,6 +273,7 @@ final class Client
 
     /**
      * Magic Method.
+     *
      * @param $method
      * @param $args
      * @return \Mitoop\Signature\SignatureResponse
@@ -286,22 +281,24 @@ final class Client
      */
     public function __call($method, $args)
     {
+        $method = strtoupper($method);
+
+        if (! in_array($method, ['GET', 'POST', 'PUT', 'DELETE'])) {
+            throw new InvalidArgumentException('The supported magic methods are GET, POST, PUT, DELETE');
+        }
+
         if (count($args) < 1) {
             throw new InvalidArgumentException('Magic request methods require at least a URI');
         }
-        $method  = strtoupper($method);
-        $path    = $args[0];
-        $datas   = $args[1] ?? [];
 
-        if ( ! in_array($method, self::SUPPORTED_HTTP_METHODS)) {
-            throw new InvalidArgumentException('The magic method is not supported');
-        }
+        $path = $args[0];
+        $params = $args[1] ?? [];
 
         $this->method = $method;
 
         $this->params = [];
 
-        $this->setDatas($datas);
+        $this->setParams($params);
 
         return $this->request($path);
     }

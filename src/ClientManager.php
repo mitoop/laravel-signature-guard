@@ -33,9 +33,9 @@ class ClientManager
     /**
      * Create a new Client manager instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application $app
-     * @param string $configName
-     * @param  \GuzzleHttp\Client $client
+     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @param  string  $configName
+     * @param  \GuzzleHttp\Client  $client
      */
     public function __construct($app, $configName, $client)
     {
@@ -86,6 +86,7 @@ class ClientManager
 
     /**
      * Get client config.
+     *
      * @param $client
      * @return array
      * @throws \InvalidArgumentException
@@ -133,7 +134,7 @@ class ClientManager
      * Dynamically call the default client instance.
      *
      * @param  string  $method
-     * @param  array   $parameters
+     * @param  array  $parameters
      * @return mixed
      */
     public function __call($method, $parameters)

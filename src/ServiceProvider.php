@@ -1,4 +1,5 @@
 <?php
+
 namespace Mitoop\Signature;
 
 use Illuminate\Contracts\Auth\UserProvider;
@@ -15,7 +16,7 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function register()
     {
-        $configName = "api-signature-clients";
+        $configName = "api-clients";
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -23,11 +24,11 @@ class ServiceProvider extends LaravelServiceProvider
             ]);
         }
 
-        $this->app->singleton(ClientManager::class, function ($app) use($configName){
+        $this->app->singleton(ClientManager::class, function ($app) use ($configName) {
             return new ClientManager($app, $configName, new \GuzzleHttp\Client);
         });
 
-        $this->app->singleton(Signature::class, function ($app) use($configName){
+        $this->app->singleton(Signature::class, function ($app) use ($configName) {
             return new Signature($app, $configName);
         });
     }
@@ -39,8 +40,8 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function boot()
     {
-        Auth::viaRequest('signature', function (Request $request, UserProvider $provider = null){
-             return (new RequestGuardHandler($this->app))->user($request, $provider);
+        Auth::viaRequest('signature', function (Request $request, UserProvider $provider = null) {
+            return (new RequestGuardHandler($this->app))->user($request, $provider);
         });
     }
 

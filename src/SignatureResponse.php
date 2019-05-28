@@ -13,7 +13,7 @@ class SignatureResponse
     /**
      * @var Response
      */
-    private $response;
+    protected $response;
 
     public function __construct($response)
     {

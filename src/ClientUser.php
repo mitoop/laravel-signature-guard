@@ -18,4 +18,9 @@ class ClientUser
     {
         return $this->client['app_id'];
     }
+
+    public function __get($name)
+    {
+        return $this->client[$name] ?? null;
+    }
 }

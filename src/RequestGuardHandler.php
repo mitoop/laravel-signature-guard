@@ -10,17 +10,17 @@ class RequestGuardHandler
     /**
      * @var \Illuminate\Contracts\Foundation\Application
      */
-    private $app;
+    protected $app;
 
     public function __construct($app)
     {
-         $this->app = $app;
+        $this->app = $app;
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param \Illuminate\Contracts\Auth\UserProvider $provider
-     * @return mixed
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Contracts\Auth\UserProvider  $provider
+     * @return \Mitoop\Signature\ClientUser
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      * @throws \Mitoop\Signature\Exception\InvalidSignatureException
      */

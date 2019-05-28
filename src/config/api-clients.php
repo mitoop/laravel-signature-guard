@@ -22,7 +22,7 @@ return [
             'host'           => env('SIGN_ANOTHER_CLIENT_HOST', ''),
             'ip'             => env('SIGN_ANOTHER_CLIENT_IP', ''),
             'port'           => env('SIGN_ANOTHER_CLIENT_PORT', 80),
-            'https_cert_pem' => env('SIGN_ANOTHER_CLIENT_HTTPS_CERT_PEM', false), // true , false, cert.pem path
+            'https_cert_pem' => env('SIGN_ANOTHER_CLIENT_HTTPS_CERT_PEM', false),
             'enable_log'     => true,
         ],
         //... more clients
