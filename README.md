@@ -68,6 +68,12 @@ Laravel Request Guard 依赖并使用 `guzzle/guzzle` 来完成请求发起, 参
                                                                              // true : 开启 SSL 验证, 并使用系统的 CA 来处理
                                                                              // 自定义证书路径 : 开启 SSL 验证, 并使用自定义的 CA 来处理
             'enable_log'     => true, // 开启请求日志 true 或者 false 推荐 true
+            
+            // 可以把请求的地址数组放在这里 actions 不是固定的 可以自定义
+            'actions' => [
+               'foo' => '/foo/abr',
+               'hello' => 'hello/world'
+            ]
         ],
 
         'another-client' => [ // 另一个客户端
