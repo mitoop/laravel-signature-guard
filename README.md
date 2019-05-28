@@ -98,7 +98,7 @@ Client::post('/api/demo', ['请求参数数组']);
 
 ```
 
-向其他客户端发起请求 这个时候需要制定 `connect` 的客户端
+向其他客户端发起请求 这个时候需要指定 `connect` 的客户端
 
 ```php
 
@@ -189,7 +189,7 @@ Laravel Request Guard 使用 Laravel 本身提供的 `guard` 机制来完成身�
 ],
 ```
 
-其次定义路由中间件 Laravel Request Guard 本身提供了一个中间件 `\Mitoop\Signature\Middleware\RequestGuardAuth` 
+其次定义路由中间件, Laravel Request Guard 本身提供了一个中间件 `\Mitoop\Signature\Middleware\RequestGuardAuth` 
 假如你使用该中间件 那么在 `\App\Http\Kernel` 的 `$routeMiddleware` 上配置 :
 ```php
   //...
@@ -222,10 +222,10 @@ Route::get('/tt', function () {
     // 向 `tuning` 客户端发起请求 `tuning` 客户端可以配置为当前项目的 host
     $response = Client::connect('tuning')->post('test', [
         'form_params' => [
-            'foo' => 'bar,
+            'foo' => 'bar',
         ],
         'query' => [
-            'hello' => 'world,
+            'hello' => 'world',
         ],
      ]);
      
@@ -248,8 +248,12 @@ Route::get('/tt', function () {
 其他可用的 Auth 方法
 
 ```php
+Auth::guard('server-api')->check();
 Auth::guard('server-api')->id();
 Auth::guard('server-api')->user();
+
+// 检查是否通过验证 
+Auth::guard('server-api')->check();
 
 // 返回发起方的 config 里的 app_id
 $appId = Auth::guard('server-api')->id();
