@@ -2,8 +2,8 @@
 
 namespace Mitoop\Signature\Facades;
 
-use Illuminate\Support\Facades\Facade;
 use Mitoop\Signature\ClientManager;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static \Mitoop\Signature\Client  connect(string|null $client = null)

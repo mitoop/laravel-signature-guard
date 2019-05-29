@@ -2,8 +2,8 @@
 
 namespace Mitoop\Signature;
 
-use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\Auth\UserProvider;
 
 class RequestGuardHandler
 {
