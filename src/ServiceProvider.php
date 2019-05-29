@@ -2,9 +2,9 @@
 
 namespace Mitoop\Signature;
 
-use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
 
 class ServiceProvider extends LaravelServiceProvider
@@ -16,7 +16,7 @@ class ServiceProvider extends LaravelServiceProvider
      */
     public function register()
     {
-        $configName = "api-clients";
+        $configName = 'api-clients';
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

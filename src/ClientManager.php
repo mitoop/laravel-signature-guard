@@ -53,7 +53,7 @@ class ClientManager
 
     protected function getDefaultClient()
     {
-        return $this->app["config"]["{$this->configName}.default"];
+        return $this->app['config']["{$this->configName}.default"];
     }
 
     protected function get($client)
@@ -93,7 +93,7 @@ class ClientManager
      */
     protected function getConfig($client)
     {
-        $config = $this->app["config"]["{$this->configName}.clients.{$client}"];
+        $config = $this->app['config']["{$this->configName}.clients.{$client}"];
 
         if (is_null($config)) {
             throw new InvalidArgumentException("Client [{$client}] is not defined.");
@@ -127,7 +127,7 @@ class ClientManager
 
     protected function getIdentity()
     {
-        return $this->app["config"]["{$this->configName}.identity"] ?? 'identity';
+        return $this->app['config']["{$this->configName}.identity"] ?? 'identity';
     }
 
     /**
